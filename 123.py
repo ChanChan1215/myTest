@@ -8,19 +8,19 @@ file_path = 'C:/Users/user/Desktop/lol_claer/LOL_MS/LOL_MS_Top.csv'
 # 讀取 CSV 檔案成 DataFrame
 df = pd.read_csv(file_path)
 
+# 確認原始資料的行數
+print(f"原始資料行數：{len(df)}")
 
 # 建立簡體轉繁體轉換器
 converter = opencc.OpenCC('s2t')
 
 # 把欄位名稱做簡轉繁
-
 df.columns = [converter.convert(col) for col in df.columns]
-  
+
 # 把英雄名稱欄位裡的簡體字轉成繁體
 df['英雄名稱'] = df['英雄名稱'].apply(converter.convert)
 
-
-# 國服(簡體) -> 台服(繁體) 英雄名稱對照字典範例
+# 國服(簡體) -> 台服(繁體) 英雄名稱對照字典
 cn_to_tw_name_map = {
     '德玛西亚之力': '嘉文四世',
     '正义天使': '凱爾',
@@ -44,10 +44,8 @@ cn_to_tw_name_map = {
     # ... 請自行補充完整
 }
 
-
-# 用字典做名稱替換
+# 用字典做名稱替換，若對照字典中找不到則保留原名稱
 df['英雄名稱'] = df['英雄名稱'].apply(lambda x: cn_to_tw_name_map.get(x, x))
-
 
 # 定義一個用 regex 處理百分比字串的函式
 def percent_to_float_regex(x):
@@ -73,6 +71,8 @@ duplicate_heroes = df[df.duplicated(subset=['英雄名稱'], keep=False)]
 if not duplicate_heroes.empty:
     print("發現重複英雄名稱：")
     print(duplicate_heroes)
+    # 刪除重複的英雄名稱，只保留第一個
+    df = df.drop_duplicates(subset=['英雄名稱'], keep='first')
 else:
     print("沒有發現重複的英雄名稱")
 
@@ -85,9 +85,8 @@ for col in ['勝率', '登場率', 'Ban率']:
     else:
         print(f"欄位 {col} 中沒有異常數值")
 
-# 若要轉換欄位名稱為英文，可用下面程式碼（非必須）
-# df.rename(columns={'英雄名稱': 'Champion', '勝率': 'WinRate', '登場率': 'PickRate', 'Ban率': 'BanRate'}, inplace=True)
+# 確認清理後的資料行數
+print(f"清理後資料行數：{len(df)}")
 
-
-# 最後印出清理後的前五筆資料確認
+# 最後印出清理後的資料
 print(df)
